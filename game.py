@@ -19,8 +19,9 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Shoot 'Em Up")
 
 # Directory to load generated images and music
-image_dir = "generated_images"
+image_dir = "generated_image"
 music_dir = "generated_music"
+sound_dir = "generated_sound"
 
 # Load or generate images
 def load_and_resize_image(filename, size):
@@ -47,6 +48,13 @@ if os.path.exists(background_music):
 else:
     print(f"Error: Background music file not found: {background_music}")
 
+# Load sound effects
+shoot_sound = pygame.mixer.Sound(os.path.join(sound_dir, "shoot.wav"))
+hit_sound = []
+hit_sound_idx = 0
+for i in range(5):
+    hit_sound.append(pygame.mixer.Sound(os.path.join(sound_dir, f'hit{i}.wav')))
+
 # Player class
 class Player(pygame.sprite.Sprite):
     def __init__(self):
@@ -72,6 +80,7 @@ class Player(pygame.sprite.Sprite):
         bullet = Bullet(self.rect.centerx, self.rect.top)
         all_sprites.add(bullet)
         bullets.add(bullet)
+        shoot_sound.play()  # Play shoot sound
 
 # Enemy class
 class Enemy(pygame.sprite.Sprite):
@@ -165,6 +174,9 @@ while running:
     # Check for bullet-enemy collisions
     hits = pygame.sprite.groupcollide(enemies, bullets, True, True)
     for hit in hits:
+        hit_sound[hit_sound_idx].play()  # Play hit sound
+        hit_sound_idx += 1
+        hit_sound_idx = hit_sound_idx % len(hit_sound)
         enemy = Enemy(enemy_image)
         all_sprites.add(enemy)
         enemies.add(enemy)
@@ -188,4 +200,3 @@ while running:
     pygame.display.flip()
 
 pygame.quit()
-

@@ -2,10 +2,11 @@ import os
 import time
 from diffusers import StableDiffusionPipeline
 import torch
-from PIL import Image
+
+print("Generating initial images")
 
 # Directory to save generated images
-output_dir = "generated_images"
+output_dir = "generated_image"
 os.makedirs(output_dir, exist_ok=True)
 
 # Load the pipeline

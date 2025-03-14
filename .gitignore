@@ -175,4 +175,5 @@ cython_debug/
 
 .idea
 
-generated_images/
+generated_image/
+generated_sound/

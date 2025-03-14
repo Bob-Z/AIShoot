@@ -17,7 +17,7 @@ def stop_process(process):
 venv_path = "venv"  # Replace with the path to your virtual environment
 
 # Directory to load generated images and music
-image_dir = "generated_images"
+image_dir = "generated_image"
 music_dir = "generated_music"
 
 # Always start the image generation script

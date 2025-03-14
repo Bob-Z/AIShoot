@@ -16,11 +16,26 @@ def stop_process(process):
 # Path to the virtual environment
 venv_path = ".venv"  # Replace with the path to your virtual environment
 
-# Clear the generated_images directory
-image_dir = "generated_images"
+# Clear the generated files directory
+image_dir = "generated_image"
 if os.path.exists(image_dir):
     shutil.rmtree(image_dir)
 os.makedirs(image_dir, exist_ok=True)
+
+music_dir = "generated_music"
+if os.path.exists(music_dir):
+    shutil.rmtree(music_dir)
+os.makedirs(music_dir, exist_ok=True)
+
+sound_dir = "generated_sound"
+if os.path.exists(sound_dir):
+    shutil.rmtree(sound_dir)
+os.makedirs(sound_dir, exist_ok=True)
+
+# Activate the virtual environment and start the sound generation script
+activate_venv_command = f"source {venv_path}/bin/activate && python3 generate_sound.py"
+sound_gen_process = start_process(activate_venv_command)
+sound_gen_process.wait()
 
 # Activate the virtual environment and start the image generation script
 activate_venv_command = f"source {venv_path}/bin/activate && python3 generate_images.py"

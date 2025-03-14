@@ -3,3 +3,7 @@ pillow
 torch
 diffusers
 transformers
+accelerate
+
+torchaudio
+audiocraft
