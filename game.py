@@ -14,6 +14,8 @@ SCREEN_HEIGHT = 600
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
+MUSIC_END = pygame.USEREVENT + 1
+
 # Set up the screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Shoot 'Em Up")
@@ -22,6 +24,7 @@ pygame.display.set_caption("Shoot 'Em Up")
 image_dir = "generated_image"
 music_dir = "generated_music"
 sound_dir = "generated_sound"
+
 
 # Load or generate images
 def load_and_resize_image(filename, size):
@@ -32,6 +35,7 @@ def load_and_resize_image(filename, size):
         print(f"Error loading image {filename}: {e}")
         return None
 
+
 # Ensure the initial images are loaded
 player_image = load_and_resize_image(os.path.join(image_dir, 'player.png'), (50, 50))
 enemy_image = load_and_resize_image(os.path.join(image_dir, 'enemy.png'), (50, 50))
@@ -40,21 +44,20 @@ background_image = load_and_resize_image(os.path.join(image_dir, 'background.png
 
 # Load initial music
 pygame.mixer.init()
-music_files = [f for f in os.listdir(music_dir) if f.endswith('.wav')]
-if not music_files:
-    print("No music files found in the directory.")
-    pygame.quit()
-    exit()
 
 current_music_index = 0
 
 def play_next_music():
+    music_files = os.listdir(music_dir)
     global current_music_index
     current_music_index = (current_music_index + 1) % len(music_files)
     next_music_file = os.path.join(music_dir, music_files[current_music_index])
+    pygame.mixer.music.stop()
     pygame.mixer.music.load(next_music_file)
     pygame.mixer.music.play(fade_ms=2000)
+    pygame.mixer.music.set_endevent(MUSIC_END)
     print(f"Playing music: {next_music_file}")
+
 
 # Start playing the first music file
 play_next_music()
@@ -65,6 +68,7 @@ hit_sound = []
 hit_sound_idx = 0
 for i in range(5):
     hit_sound.append(pygame.mixer.Sound(os.path.join(sound_dir, f'hit{i}.wav')))
+
 
 # Player class
 class Player(pygame.sprite.Sprite):
@@ -93,6 +97,7 @@ class Player(pygame.sprite.Sprite):
         bullets.add(bullet)
         shoot_sound.play()  # Play shoot sound
 
+
 # Enemy class
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, image):
@@ -110,6 +115,7 @@ class Enemy(pygame.sprite.Sprite):
             self.rect.y = random.randint(-100, -40)
             self.speed = random.randint(1, 8)
 
+
 # Bullet class
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -124,6 +130,7 @@ class Bullet(pygame.sprite.Sprite):
         self.rect.y += self.speed
         if self.rect.bottom < 0:
             self.kill()
+
 
 # Create sprite groups
 all_sprites = pygame.sprite.Group()
@@ -140,6 +147,7 @@ for i in range(8):
     all_sprites.add(enemy)
     enemies.add(enemy)
 
+
 # Function to load new enemy images from the directory
 def load_new_enemy_images():
     global enemy_image
@@ -152,6 +160,7 @@ def load_new_enemy_images():
                 print(f"Loaded new enemy image: {newest_file}")  # Debugging information
                 return new_enemy_image
     return None
+
 
 # Initialize the running variable
 running = True
@@ -172,9 +181,9 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 player.shoot()
-        elif event.type == pygame.mixer.music.get_endevent():
-            #pygame.mixer.music.fadeout(2000)  # Fade-out over 2 seconds
-            #pygame.time.set_timer(pygame.mixer.music.get_endevent(), 2000, loops=1)
+        elif event.type == MUSIC_END:
+            # pygame.mixer.music.fadeout(2000)  # Fade-out over 2 seconds
+            # pygame.time.set_timer(pygame.mixer.music.get_endevent(), 2000, loops=1)
             play_next_music()
 
     # Check for new enemy images every 0.5 seconds
