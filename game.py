@@ -40,13 +40,24 @@ background_image = load_and_resize_image(os.path.join(image_dir, 'background.png
 
 # Load initial music
 pygame.mixer.init()
-background_music = os.path.join(music_dir, "background_music.mid")
-if os.path.exists(background_music):
-    pygame.mixer.music.load(background_music)
-    pygame.mixer.music.play(-1)  # Loop the music indefinitely
-    print(f"Loaded and playing background music: {background_music}")
-else:
-    print(f"Error: Background music file not found: {background_music}")
+music_files = [f for f in os.listdir(music_dir) if f.endswith('.wav')]
+if not music_files:
+    print("No music files found in the directory.")
+    pygame.quit()
+    exit()
+
+current_music_index = 0
+
+def play_next_music():
+    global current_music_index
+    current_music_index = (current_music_index + 1) % len(music_files)
+    next_music_file = os.path.join(music_dir, music_files[current_music_index])
+    pygame.mixer.music.load(next_music_file)
+    pygame.mixer.music.play(fade_ms=2000)
+    print(f"Playing music: {next_music_file}")
+
+# Start playing the first music file
+play_next_music()
 
 # Load sound effects
 shoot_sound = pygame.mixer.Sound(os.path.join(sound_dir, "shoot.wav"))
@@ -161,6 +172,10 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 player.shoot()
+        elif event.type == pygame.mixer.music.get_endevent():
+            #pygame.mixer.music.fadeout(2000)  # Fade-out over 2 seconds
+            #pygame.time.set_timer(pygame.mixer.music.get_endevent(), 2000, loops=1)
+            play_next_music()
 
     # Check for new enemy images every 0.5 seconds
     if time.time() - last_image_check > 0.5:

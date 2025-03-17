@@ -37,6 +37,11 @@ activate_venv_command = f"source {venv_path}/bin/activate && python3 generate_so
 sound_gen_process = start_process(activate_venv_command)
 sound_gen_process.wait()
 
+# Activate the virtual environment and start the music generation script
+activate_venv_command = f"source {venv_path}/bin/activate && python3 generate_music.py"
+music_gen_process = start_process(activate_venv_command)
+music_gen_process.wait()
+
 # Activate the virtual environment and start the image generation script
 activate_venv_command = f"source {venv_path}/bin/activate && python3 generate_images.py"
 image_gen_process = start_process(activate_venv_command)

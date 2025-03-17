@@ -177,3 +177,5 @@ cython_debug/
 
 generated_image/
 generated_sound/
+generated_music/
+
