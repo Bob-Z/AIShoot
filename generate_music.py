@@ -2,9 +2,12 @@ import torchaudio
 from audiocraft.models import MusicGen
 from audiocraft.data.audio import audio_write
 import os
+import config
+
+config.read_command_line()
 
 model = MusicGen.get_pretrained('small')
-model.set_generation_params(duration=60)  # generate 30 seconds.
+model.set_generation_params(duration=config.data['music_duration'])
 
 wav = model.generate_unconditional(3)    # generates 3 unconditional audio samples
 #descriptions = ['shooting game rock music', 'shooting game electronic music', 'shooting game rap music', 'shooting game classical music','shooting game 8 bits music']
