@@ -59,13 +59,14 @@ data = {
 with open("list.json", "w") as write:
     json.dump(data, write)
 
-activate_venv_command = f"source {venv_path}/bin/activate && python3 generate_images.py"
+activate_venv_command = f"source {venv_path}/bin/activate && python3 generate_image.py"
 image_gen_process = start_process(activate_venv_command)
 image_gen_process.wait()
 
+print("Generating initial sounds")
+
 explosion_sound_idx = 0
 
-print("Generating initial sounds")
 data = {
     "file_list": [
         {"prompt": config.data["bullet_sound_prompt"],
@@ -79,10 +80,28 @@ with open("list.json", "w") as write:
     json.dump(data, write)
 
 activate_venv_command = f"source {venv_path}/bin/activate && python3 generate_sound.py"
-image_gen_process = start_process(activate_venv_command)
-image_gen_process.wait()
+sound_gen_process = start_process(activate_venv_command)
+sound_gen_process.wait()
 
 explosion_sound_idx += 1
+
+print("Generating initial music")
+music_idx = 0
+data = {
+    "file_list": [
+        {"prompt": config.data["music_prompt"][
+            music_idx % len(config.data["music_prompt"])],
+         "filename": os.path.join(config.data['music_dir'], config.data['music_filename'] + str(music_idx))},
+    ]
+}
+with open("list.json", "w") as write:
+    json.dump(data, write)
+
+activate_venv_command = f"source {venv_path}/bin/activate && python3 generate_music.py"
+music_gen_process = start_process(activate_venv_command)
+music_gen_process.wait()
+
+music_idx += 1
 
 enemy_image_idx = 0
 
@@ -109,7 +128,7 @@ while True:
     with open("list.json", "w") as write:
         json.dump(data, write)
 
-    activate_venv_command = f"source {venv_path}/bin/activate && python3 generate_images.py"
+    activate_venv_command = f"source {venv_path}/bin/activate && python3 generate_image.py"
     image_gen_process = start_process(activate_venv_command)
     image_gen_process.wait()
 
@@ -133,28 +152,19 @@ while True:
 
     explosion_sound_idx += 1
 
-# Always start the image generation script
-# generate_image_script = f"source {venv_path}/bin/activate && python3 generate_images.py"
-# image_gen_process = start_process(generate_image_script)
+    # Generate new musics
+    data = {
+        "file_list": [
+            {"prompt": config.data["music_prompt"][music_idx%len(config.data["music_prompt"])],
+             "filename": os.path.join(config.data['music_dir'], config.data['music_filename'] + str(music_idx))},
+        ]
+    }
 
-# Always start the music generation script
-# activate_venv_command_music = f"source {venv_path}/bin/activate && python3 generate_music.py"
-# music_gen_process = start_process(activate_venv_command_music)
+    with open("list.json", "w") as write:
+        json.dump(data, write)
 
-# Wait for the flag file to be created, indicating that initial images are generated
-# flag_file = os.path.join(image_dir, "initial_images_generated.flag")
-# while not os.path.exists(flag_file):
-#    time.sleep(1)
+    activate_venv_command = f"source {venv_path}/bin/activate && python3 generate_music.py"
+    music_gen_process = start_process(activate_venv_command)
+    music_gen_process.wait()
 
-# Activate the virtual environment and start the main game script
-# game_command = f"source {venv_path}/bin/activate && python3 game.py"
-# game_process = start_process(game_command)
-
-# Wait for the game process to finish
-# game_process.wait()
-
-# Stop the image generation script
-# stop_process(image_gen_process)
-
-# Stop the music generation script
-# stop_process(music_gen_process)
+    music_idx += 1
