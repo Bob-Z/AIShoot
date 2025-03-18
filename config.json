@@ -1,5 +1,20 @@
 {
   "fast_start": false,
-  "music_duration": 60
+  "music_duration": 60,
+  "image_dir": "generated_image",
+  "music_dir": "generated_music",
+  "sound_dir": "generated_sound",
+  "player_sprite_prompt": "A futuristic spaceship",
+  "player_sprite_filename": "player.png",
+  "enemy_sprite_prompt": ["An alien spaceship", "An dangerous spaceship"],
+  "enemy_sprite_filename": "enemy_",
+  "bullet_sprite_prompt": "A laser beam",
+  "bullet_sprite_filename": "bullet.png",
+  "background_prompt": ["A space background", "a space opera background"],
+  "background_filename": "background_",
+  "bullet_sound_prompt": "strange weapon single shot",
+  "bullet_sound_filename": "bullet",
+  "explosion_sound_prompt": ["brutal explosion", "small explosion", "fast explosion", "short explosion", "tiny explosion"],
+  "explosion_sound_filename": "explosion_"
 }
 
