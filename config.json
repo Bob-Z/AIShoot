@@ -1,9 +1,10 @@
 {
   "fast_start": false,
-  "music_duration": 60,
+  "music_duration": 30,
   "image_dir": "generated_image",
   "music_dir": "generated_music",
   "sound_dir": "generated_sound",
+  "tmp_dir": "tmp",
   "player_sprite_prompt": "A futuristic spaceship",
   "player_sprite_filename": "player.png",
   "player_sprite_width": 100,
