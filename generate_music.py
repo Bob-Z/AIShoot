@@ -8,10 +8,9 @@ with open("list.json", "r") as file:
 
 config.read_command_line()
 
-model = MusicGen.get_pretrained('small')
+model = MusicGen.get_pretrained("facebook/musicgen-medium")
 model.set_generation_params(duration=config.data['music_duration'])
 
-wav = model.generate_unconditional(len(input_file["file_list"]))    # generates 3 unconditional audio samples
 descriptions = []
 for f in input_file["file_list"]:
     descriptions.append(f["prompt"])
