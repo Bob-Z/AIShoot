@@ -75,6 +75,7 @@ explosion_sound = []
 last_explosion_filename = None
 explosion_sound_idx = 0
 
+
 # Player class
 class Player(pygame.sprite.Sprite):
     def __init__(self):
@@ -165,11 +166,13 @@ def load_new_enemy_images():
         if newest_file.startswith(config.data['enemy_sprite_filename']):
             if newest_file != current_enemy_image_file:
                 current_enemy_image_file = newest_file
-                new_enemy_image = load_and_resize_image(os.path.join(config.data['image_dir'], newest_file), (50, 50))
+                new_enemy_image = load_and_resize_image(os.path.join(config.data['image_dir'], newest_file), (
+                    config.data['enemy_sprite_width'], config.data['enemy_sprite_height']))
                 if new_enemy_image:
                     print(f"Loaded new enemy image: {newest_file}")
                     return new_enemy_image
     return None
+
 
 def load_new_explosion_sound():
     global explosion_sound
@@ -244,14 +247,16 @@ while running:
         # Check for player's sprite availability
         if player.image is None:
             sprite_image = load_and_resize_image(
-                os.path.join(config.data['image_dir'], config.data['player_sprite_filename']), (50, 50))
+                os.path.join(config.data['image_dir'], config.data['player_sprite_filename']),
+                (config.data['player_sprite_width'], config.data['player_sprite_height']))
             if sprite_image is not None:
                 player.set_sprite_image(sprite_image)
                 all_sprites.add(player)
         # Check for bullet's sprite availability
         if bullet_image is None:
             bullet_image = load_and_resize_image(
-                os.path.join(config.data['image_dir'], config.data['bullet_sprite_filename']), (10, 30))
+                os.path.join(config.data['image_dir'], config.data['bullet_sprite_filename']),
+                (config.data['bullet_sprite_width'], config.data['bullet_sprite_height']))
 
         new_enemy_image = load_new_enemy_images()
         if new_enemy_image:
