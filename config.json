@@ -23,7 +23,7 @@
   "bullet_sound_filename": "bullet",
   "explosion_sound_prompt": ["brutal explosion", "small explosion", "fast explosion", "short explosion", "tiny explosion"],
   "explosion_sound_filename": "explosion_",
-  "music_prompt": ["shooting game rock music", "shooting game orchestral music","shooting game 8 bits music"],
+  "music_prompt": ["shooting game 8 bits music", "shooting game 16 bits music","shooting game classic rock music", "shooting game orchestral music", "shooting game classical music","shooting game electro music"],
   "music_filename": "music_"
 }
 

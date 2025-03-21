@@ -3,6 +3,7 @@ import torch
 from torchvision import transforms
 from transformers import AutoModelForImageSegmentation
 import json
+import os
 
 with open("list.json", "r") as file:
     input_file = json.load(file)
@@ -34,4 +35,6 @@ for d in input_file["file_list"]:
     mask = pred_pil.resize(image.size)
     image.putalpha(mask)
 
-    image.save(d["output_filename"])
+    image.save("tmp.png")
+    os.rename("tmp.png",
+              d["output_filename"])  # Avoid game engine to read a file while it is not entirely written on the disk
