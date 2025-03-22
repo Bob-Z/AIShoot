@@ -1,10 +1,10 @@
 import subprocess
-import time
 import signal
 import os
 import config
 import shutil
 import json
+import time
 
 
 # Function to start a process
@@ -18,111 +18,73 @@ def stop_process(process):
         os.kill(process.pid, signal.SIGTERM)
 
 
-config.read_command_line()
+def generate_initial_resources():
+    global bg_idx
+    global explosion_sound_idx
 
-# Path to the virtual environment
-venv_path = ".venv"  # Replace with the path to your virtual environment
+    print("Generating initial images")
+    data = {
+        "file_list": [
+            {"prompt": config.data["background_prompt"][bg_idx % len(config.data["background_prompt"])],
+             "filename": os.path.join(config.data['image_dir'], config.data['background_filename'] + "0.png")},
+            {"prompt": config.data["player_sprite_prompt"],
+             "filename": os.path.join(config.data['tmp_dir'], config.data['player_sprite_filename'])},
+            {"prompt": config.data["bullet_sprite_prompt"],
+             "filename": os.path.join(config.data['tmp_dir'], config.data['bullet_sprite_filename'])},
+        ]
+    }
+    with open("list.json", "w") as write:
+        json.dump(data, write)
 
-# Clear the generated files directory
-if config.data['fast_start'] is False:
-    if os.path.exists(config.data["image_dir"]):
-        shutil.rmtree(config.data["image_dir"])
+    activate_venv_command = f"source {venv_path}/bin/activate && python3 generate_image.py"
+    image_gen_process = start_process(activate_venv_command)
+    image_gen_process.wait()
 
-    if os.path.exists(config.data["music_dir"]):
-        shutil.rmtree(config.data["music_dir"])
+    print("Removing background of initial images")
+    data = {
+        "file_list": [
+            {"input_filename": os.path.join(config.data['tmp_dir'], config.data['player_sprite_filename']),
+             "output_filename": os.path.join(config.data['image_dir'], config.data['player_sprite_filename'])},
+            {"input_filename": os.path.join(config.data['tmp_dir'], config.data['bullet_sprite_filename']),
+             "output_filename": os.path.join(config.data['image_dir'], config.data['bullet_sprite_filename'])},
+        ]
+    }
+    with open("list.json", "w") as write:
+        json.dump(data, write)
 
-    if os.path.exists(config.data["sound_dir"]):
-        shutil.rmtree(config.data["sound_dir"])
+    activate_venv_command = f"source {venv_path}/bin/activate && python3 remove_bg.py"
+    remove_bg_process = start_process(activate_venv_command)
+    remove_bg_process.wait()
 
-    if os.path.exists(config.data["tmp_dir"]):
-        shutil.rmtree(config.data["tmp_dir"])
+    print("Generating initial sounds")
 
-os.makedirs(config.data["image_dir"], exist_ok=True)
-os.makedirs(config.data["music_dir"], exist_ok=True)
-os.makedirs(config.data["sound_dir"], exist_ok=True)
-os.makedirs(config.data["tmp_dir"], exist_ok=True)
+    data = {
+        "file_list": [
+            {"prompt": config.data["bullet_sound_prompt"],
+             "filename": os.path.join(config.data['sound_dir'], config.data['bullet_sound_filename'])},
+            {"prompt": config.data["explosion_sound_prompt"][
+                explosion_sound_idx % len(config.data["explosion_sound_prompt"])],
+             "filename": os.path.join(config.data['sound_dir'],
+                                      config.data['explosion_sound_filename'] + str(explosion_sound_idx))},
+        ]
+    }
+    with open("list.json", "w") as write:
+        json.dump(data, write)
 
-bg_idx = 0
+    activate_venv_command = f"source {venv_path}/bin/activate && python3 generate_sound.py"
+    sound_gen_process = start_process(activate_venv_command)
+    sound_gen_process.wait()
 
-print("Generating initial images")
-data = {
-    "file_list": [
-        {"prompt": config.data["background_prompt"][bg_idx % len(config.data["background_prompt"])],
-         "filename": os.path.join(config.data['image_dir'], config.data['background_filename'] + "0.png")},
-        {"prompt": config.data["player_sprite_prompt"],
-         "filename": os.path.join(config.data['tmp_dir'], config.data['player_sprite_filename'])},
-        {"prompt": config.data["bullet_sprite_prompt"],
-         "filename": os.path.join(config.data['tmp_dir'], config.data['bullet_sprite_filename'])},
-    ]
-}
-with open("list.json", "w") as write:
-    json.dump(data, write)
+    explosion_sound_idx += 1
 
-activate_venv_command = f"source {venv_path}/bin/activate && python3 generate_image.py"
-image_gen_process = start_process(activate_venv_command)
-image_gen_process.wait()
+    print("Generating initial music")
+    generate_new_musics()
 
-print("Removing background of initial images")
-data = {
-    "file_list": [
-        {"input_filename": os.path.join(config.data['tmp_dir'], config.data['player_sprite_filename']),
-         "output_filename": os.path.join(config.data['image_dir'], config.data['player_sprite_filename'])},
-        {"input_filename": os.path.join(config.data['tmp_dir'], config.data['bullet_sprite_filename']),
-         "output_filename": os.path.join(config.data['image_dir'], config.data['bullet_sprite_filename'])},
-    ]
-}
-with open("list.json", "w") as write:
-    json.dump(data, write)
 
-activate_venv_command = f"source {venv_path}/bin/activate && python3 remove_bg.py"
-remove_bg_process = start_process(activate_venv_command)
-remove_bg_process.wait()
+def generate_new_images():
+    global enemy_image_idx
+    global bg_idx
 
-print("Generating initial sounds")
-
-explosion_sound_idx = 0
-
-data = {
-    "file_list": [
-        {"prompt": config.data["bullet_sound_prompt"],
-         "filename": os.path.join(config.data['sound_dir'], config.data['bullet_sound_filename'])},
-        {"prompt": config.data["explosion_sound_prompt"][
-            explosion_sound_idx % len(config.data["explosion_sound_prompt"])],
-         "filename": os.path.join(config.data['sound_dir'],
-                                  config.data['explosion_sound_filename'] + str(explosion_sound_idx))},
-    ]
-}
-with open("list.json", "w") as write:
-    json.dump(data, write)
-
-activate_venv_command = f"source {venv_path}/bin/activate && python3 generate_sound.py"
-sound_gen_process = start_process(activate_venv_command)
-sound_gen_process.wait()
-
-explosion_sound_idx += 1
-
-print("Generating initial music")
-music_idx = 0
-data = {
-    "file_list": [
-        {"prompt": config.data["music_prompt"][
-            music_idx % len(config.data["music_prompt"])],
-         "filename": os.path.join(config.data['music_dir'], config.data['music_filename'] + str(music_idx))},
-    ]
-}
-with open("list.json", "w") as write:
-    json.dump(data, write)
-
-activate_venv_command = f"source {venv_path}/bin/activate && python3 generate_music.py"
-music_gen_process = start_process(activate_venv_command)
-music_gen_process.wait()
-
-music_idx += 1
-
-enemy_image_idx = 0
-
-while True:
-    # Generate new images
     data = {
         "file_list": [
             {"prompt": config.data["enemy_sprite_prompt"][enemy_image_idx % len(config.data["enemy_sprite_prompt"])],
@@ -189,7 +151,43 @@ while True:
     enemy_image_idx += 5
     bg_idx += 1
 
-    # Generate new sounds
+
+def generate_new_taunts():
+    global taunt_system_idx
+    global taunt_user_idx
+    global txt_idx
+
+    data = {
+        "file_list": [
+            {"filename": os.path.join(config.data['text_dir'],
+                                     config.data['taunt_filename'] + str(txt_idx) + ".txt"),
+            "prompt": [
+                {
+                    "role": "system",
+                    "content": config.data["taunt_system_prompt"][
+                        taunt_system_idx % len(config.data["taunt_system_prompt"])]
+                },
+                {"role": "user", "content": config.data["taunt_user_prompt"][
+                    taunt_user_idx % len(config.data["taunt_user_prompt"])]}
+            ]
+            }
+        ]
+    }
+
+    with open("list.json", "w") as write:
+        json.dump(data, write)
+
+    activate_venv_command = f"source {venv_path}/bin/activate && python3 generate_text.py"
+    text_gen_process = start_process(activate_venv_command)
+    text_gen_process.wait()
+
+    taunt_system_idx += 1
+    taunt_user_idx += 1
+    txt_idx += 1
+
+
+def generate_new_sounds():
+    global explosion_sound_idx
     data = {
         "file_list": [
             {"prompt": config.data["explosion_sound_prompt"][
@@ -208,7 +206,10 @@ while True:
 
     explosion_sound_idx += 1
 
-    # Generate new musics
+
+def generate_new_musics():
+    global music_idx
+
     data = {
         "file_list": [
             {"prompt": config.data["music_prompt"][music_idx % len(config.data["music_prompt"])],
@@ -224,3 +225,64 @@ while True:
     music_gen_process.wait()
 
     music_idx += 1
+
+
+config.read_command_line()
+
+# Path to the virtual environment
+venv_path = ".venv"  # Replace with the path to your virtual environment
+
+# Clear the generated files directory
+if config.data['fast_start'] is False:
+    if os.path.exists(config.data["image_dir"]):
+        shutil.rmtree(config.data["image_dir"])
+
+    if os.path.exists(config.data["music_dir"]):
+        shutil.rmtree(config.data["music_dir"])
+
+    if os.path.exists(config.data["sound_dir"]):
+        shutil.rmtree(config.data["sound_dir"])
+
+    if os.path.exists(config.data["text_dir"]):
+        shutil.rmtree(config.data["text_dir"])
+
+    if os.path.exists(config.data["tmp_dir"]):
+        shutil.rmtree(config.data["tmp_dir"])
+
+os.makedirs(config.data["image_dir"], exist_ok=True)
+os.makedirs(config.data["music_dir"], exist_ok=True)
+os.makedirs(config.data["sound_dir"], exist_ok=True)
+os.makedirs(config.data["text_dir"], exist_ok=True)
+os.makedirs(config.data["tmp_dir"], exist_ok=True)
+
+explosion_sound_idx = 0
+music_idx = 0
+bg_idx = 0
+enemy_image_idx = 0
+taunt_system_idx = 0
+taunt_user_idx = 0
+txt_idx = 0
+
+generate_initial_resources()
+
+while True:
+    start = time.time()
+    generate_new_images()
+    end = time.time()
+    print(f"New images generated in {end - start} seconds")
+
+    start = time.time()
+    generate_new_taunts()
+    end = time.time()
+    print(f"New taunts generated in {end - start} seconds")
+
+    start = time.time()
+    generate_new_sounds()
+    end = time.time()
+    print(f"New sounds generated in {end - start} seconds")
+
+    start = time.time()
+    generate_new_musics()
+    end = time.time()
+    print(f"New musics generated in {end - start} seconds")
+

@@ -14,7 +14,7 @@ pipe = pipe.to("cuda")
 # Function to generate a new image
 for d in input_file["file_list"]:
     print(f'Generating image {d["filename"]} with prompt: {d["prompt"]}')
-    image = pipe(d["prompt"]).images[0]
+    image = pipe(prompt=d["prompt"], height=512, width=512).images[0]
     image.save("tmp.png")
     os.rename("tmp.png", d["filename"])  # Avoid game engine to read a file while it is not entirely written on the disk
 

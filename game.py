@@ -10,8 +10,8 @@ config.read_command_line()
 pygame.init()
 
 # Screen dimensions
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 1600
+SCREEN_HEIGHT = 900
 
 MUSIC_END = pygame.USEREVENT + 1
 
@@ -42,6 +42,7 @@ explosion_sound_idx = 0
 background_image_idx = 0
 enemy_image_idx = 0
 music_index = 0
+taunt_text_idx = 0
 
 player_init_done = False
 enemy_init_done = False
@@ -108,6 +109,20 @@ def get_next_enemy_image():
         enemy_image_idx = (enemy_image_idx + 1) % len([entry for entry in os.listdir(config.data['image_dir']) if
                                                        entry.startswith(config.data['enemy_sprite_filename'])])
     return sprite_image
+
+
+def get_next_taunt_text():
+    global taunt_text_idx
+
+    try:
+        with open(os.path.join(config.data['text_dir'],
+                               config.data['taunt_filename'] + str(taunt_text_idx) + ".txt"), "r") as f:
+            taunt = f.read()
+            taunt_text_idx = (taunt_text_idx + 1) % len([entry for entry in os.listdir(config.data['text_dir']) if
+                                                           entry.startswith(config.data['taunt_filename'])])
+            return taunt
+    except:
+        return None
 
 
 # Player class
@@ -200,9 +215,33 @@ running = True
 background_y = 0
 scroll_speed = 2
 
+# Timer for displaying the message
+last_message_time = time.time()
+show_message = False
+message_display_time = 0
+
+
+# Function to split text into lines that fit within the screen width
+def split_text_into_lines(text, font, max_width):
+    words = text.split()
+    lines = []
+    current_line = ""
+    for word in words:
+        test_line = current_line + word + " "
+        if font.size(test_line)[0] <= max_width:
+            current_line = test_line
+        else:
+            lines.append(current_line)
+            current_line = word + " "
+    lines.append(current_line)
+    return lines
+
+
 # Game loop
 clock = pygame.time.Clock()
 last_image_check = time.time()
+
+taunt_message = None
 
 while running:
     clock.tick(60)
@@ -216,23 +255,18 @@ while running:
             if event.key == pygame.K_ESCAPE:
                 exit(0)
         elif event.type == MUSIC_END:
-            # pygame.mixer.music.fadeout(2000)  # Fade-out over 2 seconds
-            # pygame.time.set_timer(pygame.mixer.music.get_endevent(), 2000, loops=1)
             play_next_music()
 
     # Check for new generated media
     if time.time() - last_image_check > 0.5:
-        # Check for music availability
         if is_music_playing is False:
             play_next_music()
 
-        # Check for bullet's sprite availability
         if bullet_image is None:
             bullet_image = load_and_resize_image(
                 os.path.join(config.data['image_dir'], config.data['bullet_sprite_filename']),
                 (config.data['bullet_sprite_width'], config.data['bullet_sprite_height']))
 
-        # Check for bullet sound availability
         if shoot_sound is None:
             try:
                 shoot_sound = pygame.mixer.Sound(
@@ -240,7 +274,6 @@ while running:
             except FileNotFoundError:
                 pass
 
-        # Check for player image availability
         if player_init_done is False:
             image = get_next_player_image()
             if image is not None:
@@ -248,12 +281,10 @@ while running:
                 drawn_sprites.add(player)
                 player_init_done = True
 
-        # Check for enemy image availability
         if enemy_init_done is False:
             enemy_image_qty = len([entry for entry in os.listdir(config.data['image_dir']) if
                                    entry.startswith(config.data['enemy_sprite_filename'])])
             if enemy_image_qty > 0:
-                # Create enemies
                 for i in range(8):
                     enemy = Enemy()
                     drawn_sprites.add(enemy)
@@ -265,7 +296,6 @@ while running:
 
     drawn_sprites.update()
 
-    # Check for bullet-enemy collisions
     hits = pygame.sprite.groupcollide(colliding_enemies, bullets, True, True)
     for hit in hits:
         explosion_sound = get_next_explosion_sound()
@@ -275,30 +305,42 @@ while running:
         drawn_sprites.add(enemy)
         colliding_enemies.add(enemy)
 
-    # Check for player-enemy collisions
-    #    if pygame.sprite.spritecollideany(player, enemies):
-    #        running = False
-
     if low_background_image is None:
         bg_image = get_next_background_image()
         if bg_image is not None:
             low_background_image = bg_image
             high_background_image = bg_image
     else:
-        # Scroll the background
         background_y += scroll_speed
         if background_y >= SCREEN_HEIGHT:
             background_y = 0
             low_background_image = high_background_image
             high_background_image = get_next_background_image()
 
-        # Draw the background
         screen.blit(high_background_image, (0, background_y - SCREEN_HEIGHT))
         screen.blit(low_background_image, (0, background_y))
 
-    # Draw all sprites
-    drawn_sprites.draw(screen)
+    # Check if it's time to display the message
+    if time.time() - last_message_time > config.data['taunt_timeout']:
+        show_message = True
+        message_display_time = time.time()
+        last_message_time = time.time()
+        taunt_message = get_next_taunt_text()
 
+    # Draw the message if it's time
+    if show_message and taunt_message:
+        if time.time() - message_display_time < config.data['taunt_duration']:
+            font = pygame.font.Font(None, 36)
+            lines = split_text_into_lines(taunt_message, font, SCREEN_WIDTH - 20)
+            y_offset = 20
+            for line in lines:
+                text = font.render(line, True, (255, 0, 0))
+                screen.blit(text, (SCREEN_WIDTH // 2 - text.get_width() // 2, y_offset))
+                y_offset += text.get_height() + 5
+        else:
+            show_message = False
+
+    drawn_sprites.draw(screen)
     pygame.display.flip()
 
 pygame.quit()
