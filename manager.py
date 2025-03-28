@@ -6,6 +6,9 @@ import shutil
 import json
 import time
 
+bark_voices = ["v2/en_speaker_0", "v2/en_speaker_1", "v2/en_speaker_2", "v2/en_speaker_3", "v2/en_speaker_4",
+               "v2/en_speaker_5", "v2/en_speaker_6", "v2/en_speaker_7", "v2/en_speaker_8", "v2/en_speaker_9"]
+
 
 # Function to start a process
 def start_process(command):
@@ -157,29 +160,52 @@ def generate_new_taunts():
     global taunt_user_idx
     global txt_idx
 
+    # Generate text
+    filename = os.path.join(config.data['text_dir'], config.data['taunt_filename'] + str(txt_idx) + ".txt")
     data = {
         "file_list": [
-            {"filename": os.path.join(config.data['text_dir'],
-                                     config.data['taunt_filename'] + str(txt_idx) + ".txt"),
-            "prompt": [
-                {
-                    "role": "system",
-                    "content": config.data["taunt_system_prompt"][
-                        taunt_system_idx % len(config.data["taunt_system_prompt"])]
-                },
-                {"role": "user", "content": config.data["taunt_user_prompt"][
-                    taunt_user_idx % len(config.data["taunt_user_prompt"])]}
-            ]
-            }
+            {"filename": filename,
+             "prompt": [
+                 {
+                     "role": "system",
+                     "content": config.data["taunt_system_prompt"][
+                         taunt_system_idx % len(config.data["taunt_system_prompt"])]
+                 },
+                 {"role": "user", "content": config.data["taunt_user_prompt"][
+                     taunt_user_idx % len(config.data["taunt_user_prompt"])]}
+             ]
+             }
         ]
     }
 
-    with open("list.json", "w") as write:
-        json.dump(data, write)
+    with open("list.json", "w") as list_json:
+        json.dump(data, list_json)
 
     activate_venv_command = f"source {venv_path}/bin/activate && python3 generate_text.py"
     text_gen_process = start_process(activate_venv_command)
     text_gen_process.wait()
+
+    # Generate vocal
+    taunt_txt = ""
+    with open(filename, "r") as taunt_txt_file:
+        taunt_txt = taunt_txt_file.read()
+
+    data = {
+        "file_list": [
+            {"filename": os.path.join(config.data['vocal_dir'],
+                                      config.data['taunt_filename'] + str(txt_idx) + ".wav"),
+             "text": taunt_txt,
+             "voice": bark_voices[txt_idx % len(bark_voices)],
+             }
+        ]
+    }
+
+    with open("list.json", "w") as list_json:
+        json.dump(data, list_json)
+
+    activate_venv_command = f"source {venv_path}/bin/activate && python3 generate_vocal.py"
+    vocal_gen_process = start_process(activate_venv_command)
+    vocal_gen_process.wait()
 
     taunt_system_idx += 1
     taunt_user_idx += 1
@@ -233,7 +259,7 @@ config.read_command_line()
 venv_path = ".venv"  # Replace with the path to your virtual environment
 
 # Clear the generated files directory
-if config.data['fast_start'] is False:
+if config.data['reset_all_media'] is True:
     if os.path.exists(config.data["image_dir"]):
         shutil.rmtree(config.data["image_dir"])
 
@@ -246,6 +272,9 @@ if config.data['fast_start'] is False:
     if os.path.exists(config.data["text_dir"]):
         shutil.rmtree(config.data["text_dir"])
 
+    if os.path.exists(config.data["vocal_dir"]):
+        shutil.rmtree(config.data["vocal_dir"])
+
     if os.path.exists(config.data["tmp_dir"]):
         shutil.rmtree(config.data["tmp_dir"])
 
@@ -253,6 +282,7 @@ os.makedirs(config.data["image_dir"], exist_ok=True)
 os.makedirs(config.data["music_dir"], exist_ok=True)
 os.makedirs(config.data["sound_dir"], exist_ok=True)
 os.makedirs(config.data["text_dir"], exist_ok=True)
+os.makedirs(config.data["vocal_dir"], exist_ok=True)
 os.makedirs(config.data["tmp_dir"], exist_ok=True)
 
 explosion_sound_idx = 0
@@ -285,4 +315,3 @@ while True:
     generate_new_musics()
     end = time.time()
     print(f"New musics generated in {end - start} seconds")
-

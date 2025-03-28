@@ -1,10 +1,11 @@
 {
-  "fast_start": false,
+  "reset_all_media": false,
   "music_duration": 30,
   "image_dir": "generated_image",
   "music_dir": "generated_music",
   "sound_dir": "generated_sound",
   "text_dir": "generated_text",
+  "vocal_dir": "generated_vocal",
   "tmp_dir": "tmp",
   "player_sprite_prompt": "A futuristic spaceship seen from above heading up. This spaceship is seen in its entirety",
   "player_sprite_filename": "player.png",

@@ -179,4 +179,6 @@ generated_image/
 generated_sound/
 generated_music/
 generated_text/
+generated_vocal/
+tmp/
 

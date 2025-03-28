@@ -7,3 +7,7 @@ accelerate
 
 torchaudio
 audiocraft
+scipy
+
+pydantic == 1.10.21
+numpy == 1.26.4

@@ -42,7 +42,7 @@ explosion_sound_idx = 0
 background_image_idx = 0
 enemy_image_idx = 0
 music_index = 0
-taunt_text_idx = 0
+taunt_idx = 0
 
 player_init_done = False
 enemy_init_done = False
@@ -111,18 +111,26 @@ def get_next_enemy_image():
     return sprite_image
 
 
-def get_next_taunt_text():
-    global taunt_text_idx
+def get_next_taunt():
+    global taunt_idx
 
     try:
         with open(os.path.join(config.data['text_dir'],
-                               config.data['taunt_filename'] + str(taunt_text_idx) + ".txt"), "r") as f:
-            taunt = f.read()
-            taunt_text_idx = (taunt_text_idx + 1) % len([entry for entry in os.listdir(config.data['text_dir']) if
-                                                           entry.startswith(config.data['taunt_filename'])])
-            return taunt
+                               config.data['taunt_filename'] + str(taunt_idx) + ".txt"), "r") as f:
+            taunt_text = f.read()
+
+        taunt_vocal = pygame.mixer.Sound(os.path.join(config.data['vocal_dir'],
+                                                config.data['taunt_filename'] + str(
+                                                    taunt_idx) + ".wav"))
+
+        if taunt_vocal is not None:
+            taunt_idx = (taunt_idx + 1) % len([entry for entry in os.listdir(config.data['vocal_dir']) if
+                                               entry.startswith(config.data['taunt_filename'])])
+            return taunt_text, taunt_vocal
+        else:
+            return None, None
     except:
-        return None
+        return None, None
 
 
 # Player class
@@ -241,7 +249,8 @@ def split_text_into_lines(text, font, max_width):
 clock = pygame.time.Clock()
 last_image_check = time.time()
 
-taunt_message = None
+taunt_txt = None
+taunt_vocal = None
 
 while running:
     clock.tick(60)
@@ -320,23 +329,25 @@ while running:
         screen.blit(high_background_image, (0, background_y - SCREEN_HEIGHT))
         screen.blit(low_background_image, (0, background_y))
 
-    # Check if it's time to display the message
+    # Check if it's time for taunting
     if time.time() - last_message_time > config.data['taunt_timeout']:
         show_message = True
         message_display_time = time.time()
         last_message_time = time.time()
-        taunt_message = get_next_taunt_text()
+        taunt_txt, taunt_vocal = get_next_taunt()
 
-    # Draw the message if it's time
-    if show_message and taunt_message:
+    # Manage taunt
+    if show_message and taunt_txt and taunt_vocal:
         if time.time() - message_display_time < config.data['taunt_duration']:
             font = pygame.font.Font(None, 36)
-            lines = split_text_into_lines(taunt_message, font, SCREEN_WIDTH - 20)
+            lines = split_text_into_lines(taunt_txt, font, SCREEN_WIDTH - 20)
             y_offset = 20
             for line in lines:
                 text = font.render(line, True, (255, 0, 0))
                 screen.blit(text, (SCREEN_WIDTH // 2 - text.get_width() // 2, y_offset))
                 y_offset += text.get_height() + 5
+
+            taunt_vocal.play()
         else:
             show_message = False
 
